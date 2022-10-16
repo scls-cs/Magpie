@@ -1,9 +1,15 @@
 from flask import Flask, render_template, request
+from py4j.java_gateway import JavaGateway
+
+
 import os
 import aiml
 from autocorrect import spell
 
 app = Flask(__name__)
+gateway = JavaGateway()
+maggie = gateway.entry_point.getMaggie()
+
 
 BRAIN_FILE="./pretrained_model/aiml_pretrained_model.dump"
 k = aiml.Kernel()
@@ -18,6 +24,7 @@ else:
     k.saveBrain(BRAIN_FILE)
 
 
+
 @app.route("/")
 def home():
     return render_template("home.html")
@@ -28,7 +35,7 @@ def get_bot_response():
     query = request.args.get('msg')
     query = [spell(w) for w in (query.split())]
     question = " ".join(query)
-    response = k.respond(question)
+    response = maggie.getResponse(question)
     if response:
         return (str(response))
     else:
